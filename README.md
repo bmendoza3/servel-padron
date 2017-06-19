@@ -2,8 +2,9 @@
 Crea archivos CSV a partir de los PDF publicados por el Servicio Electoral chileno con el padrón electoral.
 
 ## Dependencias  
-  Código desarrollado en Línux. Utiliza *pdftotext* para convertir los archivos PDF a texto plano
-  Requiere Python 2.x. Si no es el binario por defecto, cambiar `python` por `python2`
+  Código desarrollado en Línux. Utiliza *pdftotext* para convertir los archivos PDF a texto plano.
+  
+  Requiere Python 2.x. Si no es el binario por defecto, cambiar `python` por `python2`.
   
 ## Uso:
 
