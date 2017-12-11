@@ -2,7 +2,9 @@
 
 import csv
 import sys
+sys.path.append('/u/a/2017/gaflores/transfer/dist-packages' ) #<---- ahi estan los modulos de servelParser
 import json
+#import googlemaps
 import time
 import traceback
 import os
@@ -237,7 +239,12 @@ def cleaner(arch):
 				k+=1
 			else:
 				j+=1
-
+			"""
+			if circ_region_in_line(Region,line) and '-' in line and '.' in line:
+				r.write(line)
+				k+=1
+			else: j+=1
+			"""
 	a.close()
 	r.close()
 	print ' Cleaner - lineas parseadas: '+str(k)+' de '+str(c)+' | No parseadas: '+str(j)
@@ -405,7 +412,74 @@ def parser(arch):
 					direccion += " "+posible_circ[:-1].rstrip() # no era circunscripcion :c
 					
 				line = new_line
-				
+				"""
+				new_line = a.readline().replace('"',"'")
+				while not (mesa_in_line(new_line.rstrip(),True) and bool_circInLine(new_line, Region) ):
+					n_whiles += 1
+					direccion += " " + new_line.strip()
+					new_line = a.readline().replace('"',"'")
+				#new_line ahora tiene mesa y circ
+
+
+				(circunscripcion,i_circ) = circ_in_line(new_line,Region,False)
+				mesa = new_line[i_circ+len(circunscripcion)+1:].replace('\n','').strip()
+
+				if n_whiles == 1:
+					#si solo una linea es la dislocada, generalmente es 
+					l_dir_old = dir_old.strip().split()
+					datos[k-1]["Dir_Servel"] = datos[k-1]["Dir_Servel"][:-len(dir_old)] #le quito lo que le puse
+					datos[k-1]["Dir_Servel"] += " " + l_dir_old[0]
+					
+					direccion = " ".join(l_dir_old[1:]) + " " + direccion
+			
+				break
+				"""
+				#
+				""" --Debajo de "#si hay circ Y rut", si sigo con esta linea de desarrollo
+				# Hint: las circunscripciones siempre estan en la misma linea que la mesa
+				while (re.search(regex_mesa, new_line.rstrip()) is None):
+					# Mientras la nueva linea no termine en algo en forma de mesa
+					direccion += " " + new_line.strip()
+					new_line = a.readline()
+				#ahora termina en algo con forma de mesa
+				i_circ = posible_circ.find(circ)
+				direccion += " "+posible_circ[:i_circ].rstrip()
+				#circunscripcion caso dificil
+				circunscripcion = posible_circ[i_circ:i_circ+len(circ)]
+				#mesa caso dificil
+				mesa = posible_circ[i_circ+len(circ)+1:-1].strip()
+				"""			
+			
+		else: #caso facil - not all([char==" " for char in cola])
+			#direccion caso facil
+			direccion = line[i_dir:i_3ed].strip()
+			cola = line[i_3ed:].lstrip()
+
+			if cola == "":
+				new_line = a.readline().replace('"',"'")
+				while not (mesa_in_line(new_line.rstrip(),True) and bool_circInLine(new_line, Region) ):
+					direccion += " " + new_line.strip()
+					new_line = a.readline().replace('"',"'")
+				cola = new_line
+
+			cola_strip = cola.rstrip()
+			if mesa_in_line(cola_strip):
+				is_there_circ = circ_in_line(cola,Region,False)
+				#circunscripcion caso facil
+				if is_there_circ:
+					(circunscripcion,i_circ) = circ_in_line(cola,Region,False)
+					"""
+					# 'UNICA S N HURTADO         RIO HURTADO (SAMO ALTO)      6\n'
+					# Tanto "HURTADO" como "RIO HURTADO (SAMO ALTO)" son circunscripciones :c
+					i_pos_mesa = cola_strip.rfind(tres_esp) #procesando de der a izq
+					posible_mesa = cola_strip[i_pos_mesa:]
+					
+					posible_circ = cola_strip[:i_pos_mesa].strip()
+					if mesa_in_line(posible_mesa) and is_circ(posible_circ, Region):
+						circunscripcion = posible_circ
+						mesa = posible_mesa.strip()
+					else:
+					"""
 					if i_circ > 0:
 						direccion += " "+cola[:i_circ].rstrip()
 					#mesa caso facil
@@ -427,6 +501,11 @@ def parser(arch):
 					else:	
 						#no habia circ
 						direccion = dir_old
+						"""
+						print "Sad :c"
+						print " line",repr(line)
+						print " cola",repr(cola)
+						"""
 						new_line = a.readline()
 						while not mesa_in_line(new_line.strip()):
 							direccion += " " + new_line.strip()
@@ -507,6 +586,34 @@ def parser(arch):
 		if (rut == rut_problema) or (nombre_prob in nombre): print "mesa", repr(mesa) #DEBUGGING
 		if (rut == rut_problema) or (nombre_prob in nombre): print "direccion", repr(direccion) #DEBUGGING
 
+
+		"""
+		for i in range(largo):
+			if line[i]==' ' and line[i+1]==' ' and line[i+2]==' ':
+				nombre =line[:i]
+				for j in range(i+15,largo):
+					if line[j] in num:
+						for n in range(j,j+10):
+							if line[n]=='-':
+								rut = line[j:n+2] #n = sin incluir ni guion ni digito verificador
+								dv = line[n+1]
+								sexo = line[n+5:n+8]
+								for m in range(n+13,largo):
+									if line[m]==' ' and line[m+1]==' ' and line[m+2]==' ':
+										direccion = line[n+13:m]
+										for p in range(m+3,largo):
+											if line[p] in alf:
+												circunscripcion = line[p:p+45]
+												mesa = line[p+45:-1]
+												break
+										break
+								break
+							else: continue
+						break 
+					else: continue
+				break
+			else: continue
+		"""
 		nombre = re.sub(regex_manyEspacios," ",nombre).strip()
 
 		#parseando apellido1, apellido2, nombres (usa hartos supuestos)
