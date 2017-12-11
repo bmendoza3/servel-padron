@@ -55,42 +55,48 @@ def do_evrytin(arch_pdf):
 	X = run(" ".join(["pdftotext", "-layout", "'"+nombre_archivo_ext+"'", "'"+nombre_to_parse+"'"]))
 	return parser(nombre_to_parse)
 
+def len_cmp(x,y):
+    if len(x) == len(y): return 0
+    if len(x) < len(y): return -1
+    return 1
 
 def circ_in_line(posible_circ,Region,return_all=True):
-	'''Busca en el string posible_circ el nombre de alguna circunscripcion
-	   perteneciente a la Region entregada -circunscripcion de py_circs-.
-	   Si se entrega return_all = False, solo entrega la que ocurre
-	   después en el string (la de más a la derecha), junto con el índice
-	   donde aparece.
-	   Ojo que las circunscripciones candidatas pueden ser distintas:
-	           "VALDIVIA DE PAINE            BUIN                 23 V"
+    '''Busca en el string posible_circ el nombre de alguna circunscripcion
+       perteneciente a la Region entregada -circunscripcion de py_circs-.
+       Si se entrega return_all = False, solo entrega la que ocurre
+       después en el string (la de más a la derecha), junto con el índice
+       donde aparece.
+       Ojo que las circunscripciones candidatas pueden ser distintas:
+               "VALDIVIA DE PAINE            BUIN                 23 V"
        Tanto BUIN como PAINE son circunscripciones de la RM :/
-	'''
+    '''
 
-	circs = []
-	for circ in circ_nombres[Region]:
-		if circ in posible_circ:
-			circs.append(circ)
-	if circs:
-		if return_all:
-			return circs
-		elif len(circs) == 1:
-			return (circs[0], posible_circ.rfind(circs[0]))
-		else:
-			# 'UNICA S N HURTADO         RIO HURTADO (SAMO ALTO)      6\n'
-			# Tanto "HURTADO" como "RIO HURTADO (SAMO ALTO)" son circunscripciones :c
-			circ = "CIRCUNSCRIPTION_ERROR"
-			i_circ = 300
-			i_dcirc = 0
-			for c in circs:
-				i_c = posible_circ.rfind(c)
-				i_dc = i_c + len(c)
-				if i_dc > i_dcirc or (i_dc == i_dcirc and i_c < i_circ):
-					i_circ = i_c
-					i_dcirc = i_dc
-					circ = c
-			return (circ, i_circ)
-	return False
+    circs = []
+    for circ in circ_nombres[Region]:
+        if circ in posible_circ:
+            circs.append(circ)
+
+    if circs:
+        circs.sort(cmp=len_cmp, reverse=True) # Nombres mas largos antes
+        if return_all:
+            return circs
+        elif len(circs) == 1:
+            return (circs[0], posible_circ.rfind(circs[0]))
+        else:
+            # 'UNICA S N HURTADO         RIO HURTADO (SAMO ALTO)      6\n'
+            # Tanto "HURTADO" como "RIO HURTADO (SAMO ALTO)" son circunscripciones :c
+            circ = "CIRCUNSCRIPTION_ERROR"
+            i_circ = 300
+            i_dcirc = 0
+            for c in circs:
+                i_c = posible_circ.rfind(c)
+                i_dc = i_c + len(c)
+                if i_dc > i_dcirc or (i_dc == i_dcirc and i_c < i_circ):
+                    i_circ = i_c
+                    i_dcirc = i_dc
+                    circ = c
+            return (circ, i_circ)
+    return False
 
 def bool_circInLine(posible_circ, Region):
 	return not not circ_in_line(posible_circ, Region, False)
